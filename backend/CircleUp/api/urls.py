@@ -3,7 +3,6 @@ from .views import *
 urlpatterns = [
     
     path("signup/", Signup.as_view()),
-    path("verify-email/<uuid:token>/", VerifyEmail.as_view(), name="email-verify"),
     path("signin/", Signin.as_view(), name=""),
     path("csrftoken/", csrftoken.as_view(), name=""),
 
