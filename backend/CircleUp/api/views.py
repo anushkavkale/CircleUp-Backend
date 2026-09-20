@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
 from friendship.models import Follow, Block
 from django.shortcuts import get_object_or_404
 from .serializers import *
@@ -35,44 +35,50 @@ class csrftoken(APIView):
 
     
 class Signup(APIView):
-    permission_classes = [AllowAny] 
+    permission_classes = [AllowAny]
 
-    def post(self,request):
+    def post(self, request):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             profile = Profile(user=user, is_verified=True)
             profile.save()
+            return Response({"message": "User registered successfully!"}, status=status.HTTP_201_CREATED)
 
-            return Response({"message": "User registered successfully!"}, status=status.HTTP_200_OK)
-        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 class Signin(APIView):
-    authentication_classes = [SessionAuthentication]
-    
-    def post(self,request):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            login(request,user)
+            refresh = RefreshToken.for_user(user)
             LoginHistory.objects.create(
                 user=user,
                 ip_address=request.META.get("REMOTE_ADDR"),
                 user_agent=request.META.get("HTTP_USER_AGENT", "")[:500],
             )
+            return Response({
+                "message": "Logged in successfully",
+                "user_id": user.id,
+                "username": user.username,
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            }, status=status.HTTP_200_OK)
 
-            return Response({"message": "Logged in successfully", "user_id": user.id})
-        else: 
-            return Response({"error" : "Invalid Credenitials"}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class logoutView(APIView):
-        permission_classes = [IsAuthenticated]
-        def post(self,request):
-            logout(request)
-            return Response({"message": "logged out !!"})
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        return Response({"message": "logged out !!"})
 
 
 class VerifyEmail(APIView):
@@ -105,7 +111,6 @@ class PasswordResetConfirm(APIView):
         return Response({"message": "Password reset successfully."})
 
 class Posts(APIView):
-    authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
