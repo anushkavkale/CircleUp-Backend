@@ -1,13 +1,13 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-set -euo pipefail
+set -eu
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 cd "$ROOT_DIR"
 
 APP_DIR="$ROOT_DIR/backend/CircleUp"
 
-if [[ ! -f "$APP_DIR/requirements.txt" ]]; then
+if [ ! -f "$APP_DIR/requirements.txt" ]; then
 	echo "requirements.txt not found at $APP_DIR"
 	exit 1
 fi
