@@ -41,16 +41,8 @@ class Signup(APIView):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            profile = Profile(user=user, is_verified=False)
+            profile = Profile(user=user, is_verified=True)
             profile.save()
-            verification = EmailVerificationToken.objects.create(user=user)
-            send_mail(
-                "Verify your CircleUp email",
-                f"Verify your account: {request.build_absolute_uri(reverse('email-verify', args=[verification.token]))}",
-                None,
-                [user.email],
-                fail_silently=False,
-            )
 
             return Response({"message": "User registered successfully!"}, status=status.HTTP_200_OK)
         
@@ -65,8 +57,6 @@ class Signin(APIView):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            if hasattr(user, "profile") and not user.profile.is_verified:
-                return Response({"error": "Please verify your email before signing in."}, status=status.HTTP_403_FORBIDDEN)
             login(request,user)
             LoginHistory.objects.create(
                 user=user,
