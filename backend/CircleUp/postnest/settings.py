@@ -30,7 +30,7 @@ DEBUG=True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['https://circleup-frontend-2.onrender.com','*']
 
 # Application definition
 
