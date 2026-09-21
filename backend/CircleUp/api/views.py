@@ -111,6 +111,7 @@ class PasswordResetConfirm(APIView):
         return Response({"message": "Password reset successfully."})
 
 class Posts(APIView):
+    authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
